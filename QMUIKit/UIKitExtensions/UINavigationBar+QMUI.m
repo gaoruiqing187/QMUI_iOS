@@ -358,10 +358,6 @@ NSString *const kShouldFixTitleViewBugKey = @"kShouldFixTitleViewBugKey";
     });
 }
 
-(* - (UIView *)qmui_contentView {
-    return [self valueForKeyPath:@"visualProvider.contentView"];
-} *)
-
 - (UIView *)qmui_contentView {
 UIView *contentView = nil;
 

@@ -358,9 +358,43 @@ NSString *const kShouldFixTitleViewBugKey = @"kShouldFixTitleViewBugKey";
     });
 }
 
-- (UIView *)qmui_contentView {
+(* - (UIView *)qmui_contentView {
     return [self valueForKeyPath:@"visualProvider.contentView"];
+} *)
+
+- (UIView *)qmui_contentView {
+UIView *contentView = nil;
+
+if (@available(iOS 18.0, *)) {
+// iOS 18 及以上使用新方法（遍历 subviews）
+contentView = [self findContentViewInSubviews_iOS18];
+} else {
+// iOS 17 及以下使用旧方法（KVC）
+@Try {
+contentView = [self valueForKeyPath:@"visualProvider.contentView"];
+} @catch (NSException *exception) {
+NSLog(@"KVC failed: %@", exception.reason);
+contentView = [self findContentViewInSubviews_iOS18];
 }
+}
+
+return contentView ?: self;
+}
+
+
+// iOS 18+ 的新实现
+
+- (UIView *)findContentViewInSubviews_iOS18 {
+for (UIView *subview in self.subviews) {
+NSString *className = NSStringFromClass([subview class]);
+if ([className containsString:@"ContentView"] ||
+[className containsString:@"BarContentView"]) {
+return subview;
+}
+}
+return self.subviews.firstObject;
+}
+
 
 - (void)qmuinb_fixTitleViewLayoutInIOS16 {
     // _UINavigationBarTitleControl，在每次转场动画时都会被重建，但无动画则一直都是这个实例（横竖屏切换也是同一个实例）
